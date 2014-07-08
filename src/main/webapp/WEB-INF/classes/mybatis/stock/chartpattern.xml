@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding= "UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="chartpattern">
+
+	<select id="selectUpTailSideBySideList"  parameterType="java.util.HashMap" resultType="java.util.HashMap">
+		select gicode, itemabbrnm, trd_dt
+		from (
+		        select  (low_prc_1 - cls_prc_2) as con1,
+		                (high_prc_2 - high_prc_1) as con2,
+		                (high_prc_2 - high_prc_0) as con3,
+		                (cls_prc_2 - strt_prc_2) as con5,
+		                (cls_prc_1 - strt_prc_1) as con6,
+		                (cls_prc_0 - strt_prc_0) as con7,
+		                (low_prc_0 - cls_prc_2) as con9,
+		                gicode,
+		                itemabbrnm,
+		                trd_dt,
+		                (trd_qty_1 / trd_qty_2) as trn1,
+		                (trd_qty_0 / trd_qty_2) as trn2,
+		                (trd_qty_1 - trd_qty_0) as trn5
+		        from (
+		                select  gicode,
+		                        itemabbrnm,
+		                        trd_dt,
+		                        strt_prc_0,
+		                        strt_prc_1,
+		                        strt_prc_2,
+		                        high_prc_0,
+		                        high_prc_1,
+		                        high_prc_2,
+		                        low_prc_0,
+		                        low_prc_1,
+		                        low_prc_2,
+		                        cls_prc_0,
+		                        cls_prc_1,
+		                        cls_prc_2,
+		                        trd_qty_0,
+		                        trd_qty_1,
+		                        trd_qty_2
+		                from (
+		                        select  gicode,
+		                                itemabbrnm,
+		                                trd_dt,
+		                                strt_prc as strt_prc_0,
+		                                lag (strt_prc, 1)  over (partition by gicode order by trd_dt)  as strt_prc_1,
+		                                lag (strt_prc, 2)  over (partition by gicode order by trd_dt)  as strt_prc_2,
+		                                high_prc                                                       as high_prc_0,
+		                                lag (high_prc, 1)  over (partition by gicode order by trd_dt)  as high_prc_1,
+		                                lag (high_prc, 2)  over (partition by gicode order by trd_dt)  as high_prc_2,
+		                                low_prc as low_prc_0,
+		                                lag (low_prc, 1)   over (partition by gicode order by trd_dt)  as low_prc_1,
+		                                lag (low_prc, 2)   over (partition by gicode order by trd_dt)  as low_prc_2,
+		                                cls_prc                                                        as cls_prc_0,
+		                                lag (cls_prc, 1)   over (partition by gicode order by trd_dt)  as cls_prc_1,
+		                                lag (cls_prc, 2)   over (partition by gicode order by trd_dt)  as cls_prc_2,
+		                                trd_qty                                                        as trd_qty_0,
+		                                lag (trd_qty, 1)   over (partition by gicode order by trd_dt)  as trd_qty_1,
+		                                lag (trd_qty, 2)   over (partition by gicode order by trd_dt)  as trd_qty_2
+		                        from (
+		                                select gicode,
+		                                       itemabbrnm,
+		                                       trd_dt,
+		                                       round(ratio * strt_prc, 0) as strt_prc,
+		                                       round(ratio * high_prc, 0) as high_prc,
+		                                       round(ratio * low_prc, 0) as low_prc,
+		                                       round(ratio * cls_prc, 0) as cls_prc,
+		                                       round(trd_qty / ratio)    as trd_qty
+		                                from (
+		                                        select    a.gicode
+		                                                 ,b.itemabbrnm
+		                                                 ,a.trd_dt
+		                                                 ,a.strt_prc
+		                                                 ,a.high_prc
+		                                                 ,a.low_prc
+		                                                 ,a.cls_prc
+		                                                 ,a.adj_prc
+		                                                 ,a.trd_qty
+		                                                 ,a.adj_prc / a.cls_prc ratio
+		                                        from      fns_jd a, fns_j_mast_hist b
+		                                        where     b.stk_gb = '701'
+		                                        and       b.gicode = a.gicode
+		                                        and       b.gicode like 'A%0'
+		                                        and       b.trd_dt = a.trd_dt
+		                                        and       b.trd_dt between #fromTrdDt# and #toTrdDt#
+		                                    ) a
+		                            ) b
+		                    ) c    
+		                where cls_prc_2 is not null 
+		                and   low_prc_1 is not null
+		                and   trd_qty_2 is not null
+		                and   trd_qty_2 > 0
+		             ) d
+		    ) e
+		where  con1 > 0
+		and    con2 > 0
+		and    con3 > 0
+		and    con5 > 0
+		and    con6 > 0
+		and    con7 > 0
+		and    con9 > 0
+		and    trn1 between 0.4 and 0.8
+		and    trn2 between 0.4 and 0.8
+	</select>
+
+
+</mapper>

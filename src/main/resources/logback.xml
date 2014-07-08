@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<configuration scan="true" scanPeriod="3 seconds">
+
+	<appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+		<layout>
+			<pattern>
+				%d{HH:mm:ss.SSS} [%thread] %-5level %logger{32} - %msg%n
+			</pattern>
+		</layout>
+	</appender>
+	
+	<!-- Application Loggers -->
+	<logger name="com.bangdj.myapp">
+		<level value="info" />
+	</logger>
+	
+	<!-- 3rdparty Loggers -->
+	<logger name="org.springframework.core">
+		<level value="info" />
+	</logger>
+	
+	<logger name="org.springframework.beans">
+		<level value="info" />
+	</logger>
+	
+	<logger name="org.springframework.context">
+		<level value="info" />
+	</logger>
+
+	<logger name="org.springframework.web">
+		<level value="info" />
+	</logger>
+
+	<!-- Root Logger -->
+	<root>
+		<priority value="debug" />
+		<appender-ref ref="console" />
+	</root>
+	
+
+</configuration>
